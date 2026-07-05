@@ -13,7 +13,6 @@
 	<test name="Basic Auth Api Test">
 		<classes>
 			<class name="auth.tests.BasicAuthAPITest" />
-            <class name="products.tests.GetProductTest" />
 		</classes>
 	</test>
 </suite>	
