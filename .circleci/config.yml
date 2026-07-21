@@ -1,0 +1,51 @@
+version: 2.1
+
+# Use CircleCI's official Maven + OpenJDK image
+orbs:
+  maven: circleci/maven@1.4.1
+
+jobs:
+  api-tests:
+    docker:
+      - image: cimg/openjdk:17.0  # Java 17; change if needed
+    working_directory: ~/project
+
+    steps:
+      - checkout  # Pull your code from the repo
+
+      # Restore Maven dependencies from cache
+      - restore_cache:
+          keys:
+            - maven-deps-{{ checksum "pom.xml" }}
+            - maven-deps-
+
+      # Install dependencies without running tests
+      - run:
+          name: Install dependencies
+          command: mvn dependency:go-offline --batch-mode
+
+      # Save dependencies to cache
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-deps-{{ checksum "pom.xml" }}
+
+      # Run API automation tests
+      - run:
+          name: Run API Automation Tests
+          command: mvn clean test -PSmoke
+
+      # Store test results for CircleCI Insights
+      - store_test_results:
+          path: target/surefire-reports
+
+      # Store build artifacts (optional: logs, reports, etc.)
+      - store_artifacts:
+          path: target/surefire-reports
+          destination: test-reports
+
+workflows:
+  version: 2
+  test-workflow:
+    jobs:
+      - api-tests
